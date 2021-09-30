@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="icomoon/style.css">
+    <style>  
+        *{
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        } 
+        body{
+            background: linear-gradient(120deg, #f6d365, #db8972) no-repeat;
+            color: white;
+            min-height: 100vh;
+        }
+
+        h1{
+            text-transform: uppercase;
+            margin: 2em auto;
+            width: 70%;
+            text-align: center;
+        }
+
+        .todo-search{
+            width: 90%;
+            margin: 2em auto;
+            display: flex;
+            border: none;
+            padding: 1em;
+            font-weight: 500;
+        }
+
+        .todo-search, .todo-btn, button, .todoInput:focus{
+           outline: none;
+           border: none;
+        }
+
+        .container{
+            display: flex;
+            justify-content: center;
+        }
+
+        .todo-btn{
+            background: white;
+            color: #f6d365;
+            border: none;
+            padding: 0.8em;
+            border: none;
+        }
+
+        .todoInput{
+            border: none;
+            width: 50%;
+            padding: 1em;
+        }
+
+        .todoDiv{
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        li{
+            background: white;
+            width: 50%;
+            color: black;
+            padding: 0.7em;
+        }
+
+        .completed{
+            opacity: 50%;
+            text-decoration: line-through;
+        }
+
+        ul{
+            margin: 2em 0;
+            list-style-type: none;
+        }
+
+        .icon-trash, .icon-check, .icon-plus{
+            pointer-events: none;
+        }
+
+        .complete-btn, .delete-btn{
+            padding: 0.9em;
+            background: red;
+            color: white;
+            border: none;
+        }
+
+        .complete-btn{
+            background: rgb(107, 177, 2);
+        }
+
+        .fall{
+            transform: translateY(8rem) rotateZ(20deg);
+            opacity: 0;
+        }
+
+        .select{
+            position: relative;
+            margin: 0 1em;
+        }
+
+        select{
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: none;
+            outline: none;
+            color: #db8972;
+            padding: 1em;
+            width: 10rem;
+        }
+
+        .select::after{
+            content: "\25BC";
+            position: absolute;
+            pointer-events: none;
+            right: 0;
+            background: #f6d365;
+            padding: 0.7em;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>my todo list app</h1>
+    <input type="text" id="todo-search" placeholder="search" class="todo-search">
+    <div class="container">
+        <input type="text" class="todoInput"><button class="todo-btn"><i class="icon-plus"></i></button>
+        <div class="select">
+           <select name="filter-todo" class="filterTodo">
+               <option value="all">All</option>
+               <option value="completed">completed</option>
+               <option value="uncompleted">uncompleted</option>
+           </select>
+        </div>
+    </div>
+    <ul class="listContainer"></ul>
+    <script>
+        const todoInput = document.querySelector(".todoInput");
+        const todoButton = document.querySelector('.todo-btn');
+        const todoSearch = document.querySelector('#todo-search')
+        const todoContainer = document.querySelector('.listContainer');
+        const optionFilter = document.querySelector(".filterTodo")
+        // functions
+
+        const createTodo = (e) => {
+            if(todoInput.value.length > 0){
+                var li = 
+                `<div class="todoDiv">
+                <li>${todoInput.value}</li><button class="complete-btn"><i class="icon-check"></i></button><button class="delete-btn"><i class="icon-trash"></i></button>
+                </div>`;
+                saveTodo(todoInput.value);
+                todoContainer.innerHTML += li;
+                todoInput.value = "";
+            }
+        };
+
+        const formatTodo = (e) =>{
+          const listButtons = e.target;
+          if(listButtons.classList[0] == "complete-btn"){
+            //   complete todo
+              const li = e.target.parentElement;
+              li.classList.toggle("completed");
+          }
+          else if(listButtons.classList[0] == "delete-btn"){
+            //   delete todo
+              const li = e.target.parentElement;
+              li.style.transition = "0.6s";
+              li.classList.add("fall");
+              removeTodo(li)
+             li.addEventListener('transitionend', function(){
+                li.remove();
+             })
+          }
+        };
+
+// function to filter todo list
+        const filterTodo = (e) =>{
+            const todoList = todoContainer.childNodes;
+            todoList.forEach(todo  => {
+                switch(e.target.value){
+                    case "all":
+                        todo.style.display = "flex";
+                    break;
+
+                    case "completed":
+                        if(todo.classList.contains("completed")){
+                            todo.style.display = "flex";
+                        }else{
+                            todo.style.display = "none";
+                        }
+                    break;
+
+                    case "uncompleted":
+                        if(!todo.classList.contains("completed")){
+                            todo.style.display = "flex";
+                        }else{
+                            todo.style.display = "none";
+                        }
+                    break;
+                }
+            })
+        }
+      
+//  function to search the todo
+        const searchTodo = (e) =>{
+            var searchText = e.target.value.toLowerCase();
+            const allTodo = document.querySelectorAll("li");
+            allTodo.forEach(todo =>{
+                var todoName = todo.textContent;
+                    if(searchText.length = 0){
+                        todo.style.display = "flex";
+                    }else if(todoName.toLowerCase().indexOf(searchText) != -1){
+                        todo.parentElement.style.display = "flex";
+                    }else{
+                        todo.parentElement.style.display = "none";
+                    }
+                
+            })
+        }
+
+//check local storage
+// const checkStorage = () =>{
+//     let todos;
+//     if(localStorage.getItem("todos") === null) todos = [];
+//     else{
+//         todos = JSON.parse(localStorage.getItem("todos"))
+//     }
+//     return todos;
+// };
+
+
+
+//SAVING LIST TO LOCAL STORAGE
+const saveTodo = (todo) =>{
+    // checkStorage();
+    if(localStorage.getItem("todos") === null) todos = [];
+    else{
+        todos = JSON.parse(localStorage.getItem("todos"))
+    }
+    todos.push(todo);
+    localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+// displaying the todo list on page load
+const displayTodo = () => {
+    if(localStorage.getItem("todos") === null) todos = [];
+    else{
+        todos = JSON.parse(localStorage.getItem("todos"))
+    }
+    todos.forEach(todo =>{
+        var li = 
+                `<div class="todoDiv">
+                <li>${todo}</li><button class="complete-btn"><i class="icon-check"></i></button><button class="delete-btn"><i class="icon-trash"></i></button>
+                </div>`;
+                todoContainer.innerHTML += li;
+    })
+}
+
+const removeTodo = (todo) => {
+    if(localStorage.getItem("todos") === null) todos = [];
+    else{
+        todos = JSON.parse(localStorage.getItem("todos"))
+    }
+    const todoIndex = todos.indexOf(todo.children[0].textContent);
+    todos.splice(todoIndex, 1);
+    localStorage.setItem("todos", JSON.stringify(todos))
+}
+
+        //event listeners
+        todoInput.addEventListener('keypress', function(e){
+            if(e.keyCode == 13 || todoButton.clicked == true) {
+                createTodo(e);
+            }
+        });
+
+        todoButton.addEventListener('click', createTodo);
+        todoContainer.addEventListener('click', formatTodo);
+        optionFilter.addEventListener('click', filterTodo);
+        todoSearch.addEventListener('keyup', searchTodo);
+        document.addEventListener('DOMContentLoaded', displayTodo)
+    </script>
+</body>
+</html>
